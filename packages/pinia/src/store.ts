@@ -58,6 +58,7 @@ function mergeReactiveObjects<T extends StateTree>(
   patchToApply: _DeepPartial<T>
 ): T {
   // no need to go through symbols because they cannot be serialized anyway
+  // 无需遍历符号，因为它们无论如何都无法序列化
   for (const key in patchToApply) {
     if (!patchToApply.hasOwnProperty(key)) continue
     const subPatch = patchToApply[key]
@@ -139,6 +140,7 @@ function createOptionsStore<
     }
 
     // avoid creating a state in pinia.state.value
+    // 避免在 pinia.state.value 中创建 state
     const localState =
       __DEV__ && hot
         ? // use ref() to unwrap refs inside state TODO: check if this is still necessary
@@ -175,6 +177,7 @@ function createOptionsStore<
   store.$reset = function $reset() {
     const newState = state ? state() : {}
     // we use a patch to group all changes into one single subscription
+    // 我们使用一个 patch 来将所有变化组成一个单一的订阅
     this.$patch(($state) => {
       assign($state, newState)
     })
@@ -213,6 +216,7 @@ function createSetupStore<
   }
 
   // watcher options for $subscribe
+  // 用于 $subscribe 的订阅选项
   const $subscribeOptions: WatchOptions = {
     deep: true,
     // flush: 'post',
@@ -239,27 +243,30 @@ function createSetupStore<
   }
 
   // internal state
-  let isListening: boolean // set to true at the end
-  let isSyncListening: boolean // set to true at the end
-  let subscriptions: SubscriptionCallback<S>[] = markRaw([])
-  let actionSubscriptions: StoreOnActionListener<Id, S, G, A>[] = markRaw([])
-  let debuggerEvents: DebuggerEvent[] | DebuggerEvent
-  const initialState = pinia.state.value[$id] as UnwrapRef<S> | undefined
+  // 内部状态
+  let isListening: boolean // set to true at the end 结束时设置为 true
+  let isSyncListening: boolean // set to true at the end 结束时设置为 true
+  let subscriptions: SubscriptionCallback<S>[] = markRaw([]) // subscriptions 的数组
+  let actionSubscriptions: StoreOnActionListener<Id, S, G, A>[] = markRaw([]) // action subscriptions 的数组
+  let debuggerEvents: DebuggerEvent[] | DebuggerEvent // debugger events 的数组
+  const initialState = pinia.state.value[$id] as UnwrapRef<S> | undefined // 初始状态
 
   // avoid setting the state for option stores if it is set
   // by the setup
+  // 避免在 option store 中设置 state，因为它是由 setup 设置的
   if (!isOptionsStore && !initialState && (!__DEV__ || !hot)) {
     /* istanbul ignore if */
     if (isVue2) {
-      set(pinia.state.value, $id, {})
+      set(pinia.state.value, $id, {}) // v2中这么设置
     } else {
-      pinia.state.value[$id] = {}
+      pinia.state.value[$id] = {} // v3中这么设置
     }
   }
 
   const hotState = ref({} as S)
 
   // avoid triggering too many listeners
+  // 避免触发过多监听
   // https://github.com/vuejs/pinia/issues/1129
   let activeListener: Symbol | undefined
   function $patch(stateMutation: (state: UnwrapRef<S>) => void): void
@@ -300,6 +307,7 @@ function createSetupStore<
     })
     isSyncListening = true
     // because we paused the watcher, we need to manually call the subscriptions
+    // 因为我们暂停了监视程序，所以需要手动调用订阅
     triggerSubscriptions(
       subscriptions,
       subscriptionMutation,
@@ -325,7 +333,7 @@ function createSetupStore<
 
   /**
    * Wraps an action to handle subscriptions.
-   *
+   * 包装操作以处理订阅。
    * @param name - name of the action
    * @param action - action to wrap
    * @returns a wrapped action to handle subscriptions
@@ -448,6 +456,8 @@ function createSetupStore<
 
   // store the partial store now so the setup of stores can instantiate each other before they are finished without
   // creating infinite loops.
+  //现在存储部分存储，以便存储的设置可以在完成之前彼此实例化，而无需
+  //创建无限循环。
   pinia._s.set($id, store)
 
   // TODO: idea create skipSerialize that marks properties as non serializable and they are skipped
@@ -457,6 +467,7 @@ function createSetupStore<
   })!
 
   // overwrite existing actions to support $onAction
+  // 覆盖现有操作以支持$onAction
   for (const key in setupStore) {
     const prop = setupStore[key]
 
@@ -780,7 +791,7 @@ export type StoreState<SS> = SS extends Store<
 
 /**
  * Creates a `useStore` function that retrieves the store instance
- *
+ * 创建一个`useStore`函数，用于获取store实例
  * @param id - id of the store (must be unique)
  * @param options - options to define the store
  */
@@ -792,12 +803,12 @@ export function defineStore<
   A /* extends ActionsTree */ = {}
 >(
   id: Id,
-  options: Omit<DefineStoreOptions<Id, S, G, A>, 'id'>
+  options: Omit<DefineStoreOptions<Id, S, G, A>, 'id'> // 把id去掉，id作为第一个参数用了 @example: playground/useUserStore.ts
 ): StoreDefinition<Id, S, G, A>
 
 /**
  * Creates a `useStore` function that retrieves the store instance
- *
+ * 创建一个`useStore`函数，用于获取store实例
  * @param options - options to define the store
  */
 export function defineStore<
@@ -807,15 +818,16 @@ export function defineStore<
   // cannot extends ActionsTree because we loose the typings
   A /* extends ActionsTree */ = {}
 >(options: DefineStoreOptions<Id, S, G, A>): StoreDefinition<Id, S, G, A>
+// 没有剔除id 标准类型{id, state, getters, actions}，@example: playground/useCartStore.ts
 
 /**
  * Creates a `useStore` function that retrieves the store instance
- *
+ * 创建一个`useStore`函数，用于获取store实例
  * @param id - id of the store (must be unique)
- * @param storeSetup - function that defines the store
+ * @param storeSetup - function that defines the store 一个定义了store的函数
  * @param options - extra options
  */
-export function defineStore<Id extends string, SS>(
+export function defineStore<Id extends string, SS>( // @example: playground/jokes-swrv.ts
   id: Id,
   storeSetup: () => SS,
   options?: DefineSetupStoreOptions<
@@ -830,8 +842,9 @@ export function defineStore<Id extends string, SS>(
   _ExtractGettersFromSetupStore<SS>,
   _ExtractActionsFromSetupStore<SS>
 >
-export function defineStore(
+export function defineStore( // 这种非常宽泛，全部使用了any
   // TODO: add proper types from above
+  // 待完善：增加上面的类型
   idOrOptions: any,
   setup?: any,
   setupOptions?: any
@@ -851,10 +864,11 @@ export function defineStore(
         _ActionsTree
       >
 
-  const isSetupStore = typeof setup === 'function'
+  const isSetupStore = typeof setup === 'function' // 第二个参数是函数的情况，就是setUpStore
   if (typeof idOrOptions === 'string') {
     id = idOrOptions
     // the option store setup will contain the actual options in this case
+    // 如果第一个参数是字符串，那么第二个参数就是options
     options = isSetupStore ? setupOptions : setup
   } else {
     options = idOrOptions
@@ -863,9 +877,11 @@ export function defineStore(
 
   function useStore(pinia?: Pinia | null, hot?: StoreGeneric): StoreGeneric {
     const currentInstance = getCurrentInstance()
+    // 全局
     pinia =
       // in test mode, ignore the argument provided as we can always retrieve a
       // pinia instance with getActivePinia()
+      // 在测试模式下，忽略提供的参数，因为我们可以从 getActivePinia() 获取一个 pinia 实例
       (__TEST__ && activePinia && activePinia._testing ? null : pinia) ||
       (currentInstance && inject(piniaSymbol))
     if (pinia) setActivePinia(pinia)
@@ -883,6 +899,7 @@ export function defineStore(
 
     if (!pinia._s.has(id)) {
       // creating the store registers it in `pinia._s`
+      // 创建store将其注册到`pinia._s`
       if (isSetupStore) {
         createSetupStore(id, setup, options, pinia)
       } else {
@@ -912,12 +929,14 @@ export function defineStore(
     }
 
     // save stores in instances to access them devtools
+    // 存储 stores 在实例中以便访问它们 devtools
     if (
       __DEV__ &&
       IS_CLIENT &&
       currentInstance &&
       currentInstance.proxy &&
       // avoid adding stores that are just built for hot module replacement
+      // 避免添加热模块替换的只建立的 stores
       !hot
     ) {
       const vm = currentInstance.proxy
@@ -926,6 +945,7 @@ export function defineStore(
     }
 
     // StoreGeneric cannot be casted towards Store
+    // 不能将 StoreGeneric 转换为 Store
     return store as any
   }
 
