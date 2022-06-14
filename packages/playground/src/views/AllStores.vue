@@ -8,7 +8,7 @@
     <button @click="counterStore.increment(10)">Increment</button>
     <button @click="counterStore.fail()">Fail</button>
     <button @click="counterStore.decrementToZero(300)">Countdown!</button>
-  </div>
+  </div> 
 </template>
 
 <script setup lang="ts">
