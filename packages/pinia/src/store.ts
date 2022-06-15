@@ -461,6 +461,7 @@ function createSetupStore<
   pinia._s.set($id, store)
 
   // TODO: idea create skipSerialize that marks properties as non serializable and they are skipped
+  // 待办：创建skipSerialize标记属性为非序列化的，它们被跳过
   const setupStore = pinia._e.run(() => {
     scope = effectScope()
     return scope.run(() => setup())
@@ -574,6 +575,7 @@ function createSetupStore<
   })
 
   // add the hotUpdate before plugins to allow them to override it
+  // 增加热更新前的插件，以便它们可以覆盖它
   /* istanbul ignore else */
   if (__DEV__) {
     store._hotUpdate = markRaw((newStore) => {
@@ -726,6 +728,7 @@ function createSetupStore<
   }
 
   // only apply hydrate to option stores with an initial state in pinia
+  // 只对选项存储应用恢复状态
   if (
     initialState &&
     isOptionsStore &&

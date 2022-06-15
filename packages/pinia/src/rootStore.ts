@@ -21,13 +21,14 @@ import {
 /**
  * setActivePinia must be called to handle SSR at the top of functions like
  * `fetch`, `setup`, `serverPrefetch` and others
+ * setActivePinia 必须在函数的顶部调用，如 `fetch`, `setup`, `serverPrefetch` 等
  */
 export let activePinia: Pinia | undefined
 
 /**
  * Sets or unsets the active pinia. Used in SSR and internally when calling
  * actions and getters
- *
+ * 设置或者取消设置活跃的 pinia。在 SSR 和内部调用 actions 和 getters
  * @param pinia - Pinia instance
  */
 export const setActivePinia = (pinia: Pinia | undefined) =>
@@ -35,12 +36,14 @@ export const setActivePinia = (pinia: Pinia | undefined) =>
 
 /**
  * Get the currently active pinia if there is any.
+ *
  */
 export const getActivePinia = () =>
   (getCurrentInstance() && inject(piniaSymbol)) || activePinia
 
 /**
  * Every application must own its own pinia to be able to create stores
+ * 每一个应用程序都必须拥有自己的pinia来创建store
  */
 export interface Pinia {
   install: (app: App) => void
@@ -52,7 +55,7 @@ export interface Pinia {
 
   /**
    * Adds a store plugin to extend every store
-   *
+   *  增加一个store插件来扩展每个store
    * @param plugin - store plugin to add
    */
   use(plugin: PiniaPlugin): Pinia
@@ -129,12 +132,13 @@ export interface PiniaPluginContext<
 
 /**
  * Plugin to extend every store.
+ * 通过插件扩展每一个store
  */
 export interface PiniaPlugin {
   /**
    * Plugin to extend every store. Returns an object to extend the store or
    * nothing.
-   *
+   *  插件扩展每一个store，返回一个对象来扩展store
    * @param context - Context
    */
   (context: PiniaPluginContext): Partial<
@@ -144,6 +148,7 @@ export interface PiniaPlugin {
 
 /**
  * Plugin to extend every store.
+ * 通过插件扩展每一个store
  * @deprecated use PiniaPlugin instead
  */
 export type PiniaStorePlugin = PiniaPlugin
